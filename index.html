@@ -1,1 +1,270 @@
-# c_wedding
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>창근 ♥ 보람 결혼합니다</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph / 카카오톡 미리보기 -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="창근 ♥ 보람 결혼합니다">
+    <meta property="og:description" content="2026년 8월 23일 일요일 | 예식장 미정">
+    <meta property="og:image" content="images/main.jpg">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="창근 ♥ 보람 결혼합니다">
+    <meta name="twitter:description" content="2026년 8월 23일 일요일 | 예식장 미정">
+    <meta name="twitter:image" content="images/main.jpg">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Batang:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 메인 커버 -->
+    <section class="cover">
+        <div class="cover-content">
+            <div class="flower-top">
+                <img src="images/flower-top.svg" alt="꽃 장식">
+            </div>
+            <p class="cover-date">2026. 08. 23 SUN</p>
+            <div class="cover-names">
+                <span class="groom-name">창근</span>
+                <span class="heart">&#10084;</span>
+                <span class="bride-name">보람</span>
+            </div>
+            <p class="cover-venue">예식장 미정</p>
+            <div class="couple-image">
+                <img src="images/couple-main.svg" alt="신랑 신부">
+                <div class="image-gradient"></div>
+            </div>
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+                <p style="text-align: center; margin: 0 0 12px 0; font-size: 0.8125rem; color: #888; letter-spacing: 0.1em;">초대합니다</p>
+                <div class="scroll-arrow"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 인사말 -->
+    <section class="greeting">
+        <div class="container">
+            <div class="section-content animate-on-scroll">
+                <div class="greeting-icon">
+                    <img src="images/rings.svg" alt="웨딩 링">
+                </div>
+                <h2 class="section-title">저희 결혼합니다</h2>
+                <div class="greeting-text">
+                    <p class="quote">
+                        "우리 인생은 수많은 작은 순간으로 이루어져 있어요.<br>
+                        그리고 그 작은 순간들이 우리를 진짜 행복하게 하죠."
+                    </p>
+                    <p class="quote-source">
+                        - 영화 『어바웃 타임』 중 -
+                    </p>
+                    <p>
+                        저희 두 사람도 이제 함께 이 여정을 시작하려 합니다.<br>
+                        서로의 사랑과 믿음으로 걸어갈 이 길에<br>
+                        따뜻한 축복과 응원을 보내주신다면<br>
+                        더없는 기쁨이 될 것입니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 신랑 신부 소개 -->
+    <section class="couple-intro">
+        <div class="container">
+            <div class="section-content animate-on-scroll">
+                <div class="couple-info">
+                    <div class="person groom">
+                        <p class="parents"><span class="father">○○○</span> · <span class="mother">○○○</span>의 아들</p>
+                        <p class="name">박창근</p>
+                    </div>
+                    <div class="divider">
+                        <img src="images/heart-divider.svg" alt="">
+                    </div>
+                    <div class="person bride">
+                        <p class="parents"><span class="father">○○○</span> · <span class="mother">○○○</span>의 딸</p>
+                        <p class="name">○보람</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 갤러리 -->
+    <section class="gallery">
+        <div class="container">
+            <div class="section-content animate-on-scroll">
+                <h2 class="section-title">갤러리</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openLightbox('images/1.jpg')">
+                        <img src="images/1.jpg" alt="갤러리 사진 1">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('images/2.jpg')">
+                        <img src="images/2.jpg" alt="갤러리 사진 2">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('images/3.jpg')">
+                        <img src="images/3.jpg" alt="갤러리 사진 3">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('images/4.jpg')">
+                        <img src="images/4.jpg" alt="갤러리 사진 4">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('images/5.jpg')">
+                        <img src="images/5.jpg" alt="갤러리 사진 5">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('images/6.jpg')">
+                        <img src="images/6.jpg" alt="갤러리 사진 6">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('images/7.jpg')">
+                        <img src="images/7.jpg" alt="갤러리 사진 7">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('images/8.jpg')">
+                        <img src="images/8.jpg" alt="갤러리 사진 8">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('images/9.jpg')">
+                        <img src="images/9.jpg" alt="갤러리 사진 9">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 예식 정보 -->
+    <section class="ceremony">
+        <div class="container">
+            <div class="section-content animate-on-scroll">
+                <h2 class="section-title">예식 안내</h2>
+                <div class="ceremony-info">
+                    <div class="ceremony-date">
+                        <p class="date-main">2026년 8월 23일</p>
+                        <p class="date-day">일요일</p>
+                    </div>
+                    <div class="ceremony-venue">
+                        <p class="venue-name">예식장 미정</p>
+                        <p class="venue-hall">홀 미정</p>
+                    </div>
+                    <div class="calendar-widget">
+                        <div class="calendar">
+                            <div class="calendar-header">
+                                <span>2026년 8월</span>
+                            </div>
+                            <div class="calendar-days">
+                                <span class="sunday">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="saturday">토</span>
+                            </div>
+                            <div class="calendar-dates">
+                                <span></span><span></span><span></span><span></span><span></span><span></span><span class="saturday">1</span>
+                                <span class="sunday">2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span class="saturday">8</span>
+                                <span class="sunday">9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span class="saturday">15</span>
+                                <span class="sunday">16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span class="saturday">22</span>
+                                <span class="wedding-day sunday">23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span class="saturday">29</span>
+                                <span class="sunday">30</span><span>31</span><span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 오시는 길 -->
+    <section class="location">
+        <div class="container">
+            <div class="section-content animate-on-scroll">
+                <h2 class="section-title">오시는 길</h2>
+                <div class="location-info">
+                    <div class="map-image">
+                        <img src="images/map.svg" alt="약도">
+                    </div>
+                    <div class="address-info">
+                        <p class="venue-name">예식장 미정</p>
+                        <p class="address">주소 미정</p>
+                        <p class="tel">Tel. 000-000-0000</p>
+                        <button class="copy-address-btn" data-copy="주소 미정">주소 복사하기</button>
+                    </div>
+                    <div class="map-buttons">
+                        <a href="#" class="map-btn naver" target="_blank">
+                            <span>네이버 지도</span>
+                        </a>
+                        <a href="#" class="map-btn google" target="_blank">
+                            <span>구글 지도</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 마음 전하기 (계좌 정보) -->
+    <section class="account">
+        <div class="container">
+            <div class="section-content animate-on-scroll">
+                <h2 class="section-title">마음 전하실 곳</h2>
+                <p class="account-desc">참석이 어려우신 분들을 위해<br>계좌번호를 기재하였습니다.<br>너그러운 마음으로 양해 부탁드립니다.</p>
+
+                <div class="account-list">
+                    <div class="account-section">
+                        <p class="account-label">🤵 신랑측</p>
+                        <div class="account-card">
+                            <p class="bank-name">○○은행</p>
+                            <p class="account-number">000-000-000000</p>
+                            <p class="account-holder">박창근 (신랑)</p>
+                            <button class="copy-btn" data-copy="○○은행 000-000-000000">계좌번호 복사</button>
+                        </div>
+                        <div class="account-card">
+                            <p class="bank-name">○○은행</p>
+                            <p class="account-number">000-000-000000</p>
+                            <p class="account-holder">○○○ (신랑 부)</p>
+                            <button class="copy-btn" data-copy="○○은행 000-000-000000">계좌번호 복사</button>
+                        </div>
+                    </div>
+                    <div class="account-section">
+                        <p class="account-label">👰 신부측</p>
+                        <div class="account-card">
+                            <p class="bank-name">○○은행</p>
+                            <p class="account-number">000-000-000000</p>
+                            <p class="account-holder">○보람 (신부)</p>
+                            <button class="copy-btn" data-copy="○○은행 000-000-000000">계좌번호 복사</button>
+                        </div>
+                        <div class="account-card">
+                            <p class="bank-name">○○은행</p>
+                            <p class="account-number">000-000-000000</p>
+                            <p class="account-holder">○○○ (신부 부)</p>
+                            <button class="copy-btn" data-copy="○○은행 000-000-000000">계좌번호 복사</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-names">창근 ♥ 보람</p>
+            <p class="footer-date">2026. 08. 23</p>
+        </div>
+    </footer>
+
+    <!-- 복사 알림 토스트 -->
+    <div class="toast" id="toast">계좌번호가 복사되었습니다</div>
+
+    <!-- 라이트박스 -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+        <button class="lightbox-prev" onclick="prevImage(event)">&lt;</button>
+        <img src="" alt="확대 이미지" id="lightbox-img">
+        <button class="lightbox-next" onclick="nextImage(event)">&gt;</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
