@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>시네마틱 시안 (higgs sandbox)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:'Noto Serif KR',serif}
+
+    #cine{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center}
+
+    /* 프레임 (코드로 켄번스 푸시인) */
+    #frame{
+      position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 40%;
+      /* 시네마틱 컬러 그레이딩 */
+      filter:contrast(1.12) saturate(1.06) brightness(1.02) sepia(.12) hue-rotate(-6deg);
+      transform-origin:center 42%;
+      animation:push 16s ease-in-out infinite alternate;
+      will-change:transform;
+    }
+    @keyframes push{
+      0%  {transform:scale(1.04) translate3d(-1.5%,0,0)}
+      100%{transform:scale(1.16) translate3d(1.5%,-2%,0)}
+    }
+
+    /* 따뜻+차가운 시네마틱 틴트 (teal & orange) */
+    #grade{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;
+      background:radial-gradient(120% 80% at 50% 35%, rgba(255,180,120,.28), rgba(255,180,120,0) 55%),
+                 linear-gradient(180deg, rgba(20,40,60,.22), rgba(20,40,60,0) 40%, rgba(20,30,55,.30))}
+
+    /* 비네트 */
+    #vig{position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(120% 100% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%)}
+
+    /* 필름 그레인 */
+    #grain{position:absolute;inset:-50%;pointer-events:none;opacity:.10;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation:grain .5s steps(2) infinite}
+    @keyframes grain{0%{transform:translate(0,0)}50%{transform:translate(-6%,4%)}100%{transform:translate(4%,-5%)}}
+
+    /* 레터박스 (2.39:1 시네마스코프) */
+    #cine::before,#cine::after{content:"";position:absolute;left:0;right:0;height:11vh;background:#000;z-index:5}
+    #cine::before{top:0}#cine::after{bottom:0}
+
+    /* 타이틀 */
+    #title{position:absolute;left:0;right:0;bottom:16vh;z-index:6;text-align:center;
+      opacity:0;animation:tin 16s ease-in-out infinite}
+    #title .l{font-size:.62rem;letter-spacing:.42em;color:#e8c9a6;margin-bottom:14px;font-weight:300}
+    #title .n{font-size:clamp(1.6rem,6vw,2.1rem);font-weight:200;color:#fff;letter-spacing:.16em;text-shadow:0 2px 18px rgba(0,0,0,.6)}
+    #title .h{color:#f4b9c6;font-size:.7em}
+    #title .d{margin-top:12px;font-size:.74rem;letter-spacing:.24em;color:#d9c6ad}
+    @keyframes tin{0%,12%{opacity:0;transform:translateY(14px)}28%,72%{opacity:1;transform:translateY(0)}90%,100%{opacity:0;transform:translateY(-10px)}}
+
+    /* 라벨 (샌드박스 표시) */
+    #tag{position:absolute;top:calc(11vh + 10px);left:14px;z-index:7;font-size:.58rem;letter-spacing:.18em;color:#8a8a8a;opacity:.6}
+    /* 컨트롤 */
+    #ctl{position:absolute;bottom:calc(11vh + 12px);left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:10px}
+    #ctl button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#eee;
+      font-family:inherit;font-size:.66rem;padding:7px 14px;border-radius:20px;cursor:pointer;letter-spacing:.05em}
+    #ctl button.on{background:rgba(212,165,116,.85);color:#1c0f12;border-color:transparent}
+  </style>
+</head>
+<body>
+  <div id="cine">
+    <img id="frame" alt="" />
+    <div id="grade"></div>
+    <div id="vig"></div>
+    <div id="grain"></div>
+    <div id="title">
+      <p class="l">CINEMATIC</p>
+      <p class="n">박창근 <span class="h">♥</span> 정보람</p>
+      <p class="d">2026 · 08 · 23</p>
+    </div>
+    <div id="tag">HIGGS SANDBOX · 80f cinematic</div>
+    <div id="ctl">
+      <button id="b-speed">속도: 보통</button>
+      <button id="b-dir" class="on">정방향</button>
+    </div>
+  </div>
+
+  <script>
+    const FRAMES = 80
+    const frameEl = document.getElementById('frame')
+    const imgs = []
+    let loaded = 0
+    for (let i = 1; i <= FRAMES; i++) {
+      const im = new Image()
+      im.src = `/frames/frame_${String(i).padStart(4,'0')}.jpg`
+      im.onload = im.onerror = () => { loaded++ }
+      imgs.push(im)
+    }
+
+    // 시네마틱 재생: 부드럽게 1→80→1 왕복(ping-pong)
+    let f = 0, dir = 1
+    let fps = 16, pingpong = true
+    let last = 0
+    function loop(t) {
+      requestAnimationFrame(loop)
+      if (t - last < 1000 / fps) return
+      last = t
+      f += dir
+      if (pingpong) {
+        if (f >= FRAMES - 1) { f = FRAMES - 1; dir = -1 }
+        if (f <= 0) { f = 0; dir = 1 }
+      } else {
+        if (f >= FRAMES) f = 0
+      }
+      frameEl.src = `/frames/frame_${String(f + 1).padStart(4,'0')}.jpg`
+    }
+    requestAnimationFrame(loop)
+
+    // 컨트롤
+    const speeds = [['느림',9],['보통',16],['빠름',26]]
+    let si = 1
+    document.getElementById('b-speed').onclick = e => {
+      si = (si + 1) % speeds.length; fps = speeds[si][1]; e.target.textContent = '속도: ' + speeds[si][0]
+    }
+    const bd = document.getElementById('b-dir')
+    bd.onclick = () => {
+      pingpong = !pingpong
+      bd.textContent = pingpong ? '왕복' : '정방향'
+      bd.classList.toggle('on')
+    }
+    bd.textContent = '왕복'
+  </script>
+</body>
+</html>

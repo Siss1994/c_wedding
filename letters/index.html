@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Letter Strings (letters sandbox)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200;300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;background:#0c0712;overflow:hidden;font-family:'Noto Serif KR',serif;touch-action:none}
+    #stage{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(100vw,480px);height:100vh;height:100dvh;overflow:hidden;background:#0c0712;box-shadow:0 0 60px rgba(0,0,0,.6)}
+    canvas{display:block;width:100%;height:100%}
+    #tag{position:absolute;top:12px;left:14px;z-index:5;font-size:.56rem;letter-spacing:.18em;color:#6a6072;opacity:.6}
+    #hintbar{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:5;font-size:.62rem;letter-spacing:.14em;color:#8a7c90;opacity:.8;text-align:center;white-space:nowrap}
+    /* 자이로 권한 시작 (모바일) */
+    #gyro{position:absolute;inset:0;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(12,7,18,.72);backdrop-filter:blur(4px)}
+    #gyro.show{display:flex}
+    #gyro p{font-size:.8rem;color:#e8dcec;letter-spacing:.1em;text-align:center;padding:0 24px;line-height:1.7}
+    #gyro small{font-size:.62rem;color:#9a8ca6;text-align:center;padding:0 30px;line-height:1.7}
+    #gyro button{font-family:inherit;font-size:.8rem;color:#1c0f12;background:rgba(228,184,200,.92);border:none;border-radius:24px;padding:12px 28px;letter-spacing:.06em;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <div id="tag">LETTER STRINGS · sandbox</div>
+    <div id="hintbar"></div>
+    <div id="gyro"><p>기기를 기울이면 글자가 흔들려요</p><button id="gyro-go">시작하기</button><small id="gyro-note"></small></div>
+  </div>
+
+  <script>
+  const stage = document.getElementById('stage')
+  const canvas = document.getElementById('c')
+  const ctx = canvas.getContext('2d')
+  let W = 0, H = 0, DPR = Math.min(devicePixelRatio || 1, 2)
+
+  function resize() {
+    const r = stage.getBoundingClientRect()
+    W = r.width; H = r.height
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR)
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0)
+    layout()
+  }
+
+  // ── 텍스트 정의 (라인별 폰트/색) ──
+  const LINES = [
+    { t: 'WEDDING INVITATION', size: 0.030, color: '#d6ac82', sp: 0.42, y: 0.16, weight: 300 },
+    { t: '박창근  ♥  정보람',   size: 0.085, color: '#fbeef2', sp: 0.06, y: 0.30, weight: 200, heart: '#f7a8bd' },
+    { t: '2026 · 08 · 23',      size: 0.040, color: '#e6d6c0', sp: 0.14, y: 0.42, weight: 300 },
+    { t: '오후 4시 40분',        size: 0.034, color: '#b8a6c0', sp: 0.10, y: 0.49, weight: 300 },
+    { t: '서로를 알아가며 쌓아온 사랑을', size: 0.030, color: '#9a8ca6', sp: 0.04, y: 0.62, weight: 300 },
+    { t: '이제 평생의 약속으로 맺으려 합니다', size: 0.030, color: '#9a8ca6', sp: 0.04, y: 0.68, weight: 300 },
+    { t: '여의도웨딩컨벤션 3F 그랜드볼룸', size: 0.030, color: '#c2a888', sp: 0.05, y: 0.82, weight: 400 },
+  ]
+
+  // ── 글자 파티클 (Verlet) ──
+  // p: 현재, o: 이전(속도), h: 홈(목표)
+  let chars = []
+
+  function layout() {
+    chars = []
+    const base = Math.min(W, H)
+    for (const ln of LINES) {
+      const fs = ln.size * base
+      ctx.font = `${ln.weight} ${fs}px 'Noto Serif KR', serif`
+      const sp = ln.sp * fs
+      // 전체 너비 계산
+      let total = 0
+      const ws = []
+      for (const ch of [...ln.t]) { const w = ctx.measureText(ch).width; ws.push(w); total += w + sp }
+      total -= sp
+      let x = (W - total) / 2
+      const y = ln.y * H
+      ;[...ln.t].forEach((ch, i) => {
+        const cx = x + ws[i] / 2
+        const isHeart = ch === '♥'
+        chars.push({
+          ch, fs, weight: ln.weight,
+          color: isHeart && ln.heart ? ln.heart : ln.color,
+          hx: cx, hy: y, px: cx, py: y, ox: cx, oy: y,
+        })
+        x += ws[i] + sp
+      })
+    }
+  }
+
+  // ── 입력: 마우스 + 자이로 ──
+  const tilt = { x: 0, y: 0, tx: 0, ty: 0 }      // -1..1
+  const pointer = { x: -9999, y: -9999, active: false }
+
+  window.addEventListener('mousemove', e => {
+    const r = stage.getBoundingClientRect()
+    pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top; pointer.active = true
+    tilt.tx = (pointer.x / W - 0.5) * 2
+    tilt.ty = (pointer.y / H - 0.5) * 2
+  })
+  window.addEventListener('mouseleave', () => { pointer.active = false })
+  window.addEventListener('touchmove', e => {
+    const t = e.touches[0]; const r = stage.getBoundingClientRect()
+    pointer.x = t.clientX - r.left; pointer.y = t.clientY - r.top; pointer.active = true
+  }, { passive: true })
+  window.addEventListener('touchend', () => { pointer.active = false })
+
+  function onOrient(e) {
+    // gamma: 좌우(-90..90), beta: 앞뒤(-180..180)
+    tilt.tx = Math.max(-1, Math.min(1, (e.gamma || 0) / 35))
+    tilt.ty = Math.max(-1, Math.min(1, ((e.beta || 0) - 45) / 35))
+  }
+
+  // 자이로 권한 (iOS 13+는 사용자 제스처 + requestPermission, 그리고 HTTPS 필요)
+  const gyroOverlay = document.getElementById('gyro')
+  const gyroNote = document.getElementById('gyro-note')
+  const isTouch = matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window)
+  const hasDOE = 'DeviceOrientationEvent' in window
+  let gyroFired = false
+  function markFired() { gyroFired = true }
+
+  function enableGyro() {
+    const DOE = window.DeviceOrientationEvent
+    if (DOE && typeof DOE.requestPermission === 'function') {
+      DOE.requestPermission().then(s => {
+        if (s === 'granted') { window.addEventListener('deviceorientation', onOrient); window.addEventListener('deviceorientation', markFired, { once: true }) }
+        else gyroNote.textContent = '권한이 거부되었어요. 설정에서 모션 접근을 허용해주세요.'
+      }).catch(err => { gyroNote.textContent = '자이로 사용 불가: ' + (err && err.message ? err.message : 'HTTPS 필요') })
+    } else if (DOE) {
+      window.addEventListener('deviceorientation', onOrient)
+      window.addEventListener('deviceorientation', markFired, { once: true })
+    }
+    gyroOverlay.classList.remove('show')
+    // 1.2초 뒤에도 이벤트가 안 오면(비보안 컨텍스트 등) 안내
+    setTimeout(() => {
+      if (!gyroFired) {
+        gyroOverlay.classList.add('show')
+        gyroNote.textContent = location.protocol !== 'https:'
+          ? '자이로는 HTTPS에서만 작동해요. 현재 http라 안 됩니다. (마우스/터치 드래그는 됩니다)'
+          : '센서 신호가 없어요. 기기를 좀 더 크게 기울여보세요.'
+      }
+    }, 1200)
+  }
+
+  // 터치 기기면 항상 버튼 노출
+  if (isTouch) {
+    gyroOverlay.classList.add('show')
+    if (!hasDOE) {
+      document.getElementById('gyro-go').style.display = 'none'
+      gyroNote.textContent = '이 브라우저는 자이로를 지원하지 않아요. 화면을 터치해 드래그하면 글자가 흔들려요.'
+    }
+    document.getElementById('gyro-go').addEventListener('click', enableGyro)
+  }
+
+  document.getElementById('hintbar').textContent = isTouch ? '기기를 기울이거나 화면을 드래그하세요' : '마우스를 움직여보세요'
+
+  // ── 물리 루프 ──
+  const SPRING = 0.022    // 홈으로 복원
+  const DAMP = 0.90       // 감쇠
+  const TILT_FORCE = 26   // 기울임 힘
+  const REPEL_R = 70, REPEL_F = 1.0
+  const SWAY = 7          // 잔잔한 자체 흔들림
+
+  let tms = 0
+  function step() {
+    requestAnimationFrame(step)
+    tms += 0.016
+    tilt.x += (tilt.tx - tilt.x) * 0.06
+    tilt.y += (tilt.ty - tilt.y) * 0.06
+
+    ctx.clearRect(0, 0, W, H)
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+
+    for (let i = 0; i < chars.length; i++) {
+      const c = chars[i]
+      // Verlet 속도
+      let vx = (c.px - c.ox) * DAMP
+      let vy = (c.py - c.oy) * DAMP
+      c.ox = c.px; c.oy = c.py
+
+      // 가속: 홈 스프링 + 기울임 + 잔잔한 흔들림
+      let ax = (c.hx - c.px) * SPRING + tilt.x * TILT_FORCE * SPRING
+      let ay = (c.hy - c.py) * SPRING + tilt.y * TILT_FORCE * SPRING
+      ax += Math.sin(tms * 1.3 + c.hy * 0.05) * SWAY * SPRING
+      ay += Math.cos(tms * 1.1 + c.hx * 0.05) * SWAY * SPRING
+
+      // 포인터 밀어내기
+      if (pointer.active) {
+        const dx = c.px - pointer.x, dy = c.py - pointer.y
+        const d2 = dx * dx + dy * dy
+        if (d2 < REPEL_R * REPEL_R) {
+          const d = Math.sqrt(d2) || 1
+          const f = (1 - d / REPEL_R) * REPEL_F * 6
+          ax += (dx / d) * f; ay += (dy / d) * f
+        }
+      }
+
+      c.px += vx + ax
+      c.py += vy + ay
+
+      ctx.font = `${c.weight} ${c.fs}px 'Noto Serif KR', serif`
+      ctx.fillStyle = c.color
+      ctx.fillText(c.ch, c.px, c.py)
+    }
+  }
+
+  // 폰트 로드 후 레이아웃
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(resize)
+  else setTimeout(resize, 400)
+  resize()
+  window.addEventListener('resize', resize)
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', resize)
+  requestAnimationFrame(step)
+  </script>
+</body>
+</html>
