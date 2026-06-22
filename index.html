@@ -154,6 +154,18 @@
     .btn-dim  { background: rgba(255,255,255,.09); color: #f0e8e0; border: 1px solid rgba(255,255,255,.14); }
     .btn-soft { background: rgba(255,255,255,.14); color: #fff4e8; border: 1px solid rgba(255,255,255,.18); }
 
+    /* 모든 버튼 클릭(누름) 피드백 */
+    .btn, .copy-btn, #book-prev, #book-next, #book-close, .gallery img {
+      -webkit-tap-highlight-color: transparent; user-select: none;
+      transition: transform .13s ease, filter .2s ease, background .3s, color .3s, border-color .3s, box-shadow .2s;
+    }
+    .btn:hover, .copy-btn:hover { filter: brightness(1.06); }
+    .btn:active, .copy-btn:active, #book-prev:active, #book-next:active, #book-close:active, .gallery img:active {
+      transform: scale(0.93); filter: brightness(0.88);
+    }
+    .btn.copied { animation: btnPop .3s ease; }
+    @keyframes btnPop { 0% { transform: scale(.9); } 55% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
     .acct { margin-top: 6px; }
     .acct-label { font-size: .66rem; color: #b9a88f; margin: 12px 0 6px; }
     .acct-row {
@@ -286,7 +298,7 @@
       .acct-label { margin-top: 10px; }
     }
   </style>
-  <script type="module" crossorigin src="/assets/index-CtgAdLOO.js"></script>
+  <script type="module" crossorigin src="/assets/index-CP_uBKzX.js"></script>
 </head>
 <body>
   <div id="stage">
