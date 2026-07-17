@@ -171,6 +171,41 @@
     .btn.copied { animation: btnPop .3s ease; }
     @keyframes btnPop { 0% { transform: scale(.9); } 55% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
+    /* RSVP 참석 입력 */
+    .rsvp-desc { font-size: .74rem; color: #c9b7a2; line-height: 1.8; margin: 6px 0 14px; }
+    #rsvp-modal {
+      position: fixed; inset: 0; z-index: 70; display: none;
+      align-items: center; justify-content: center; padding: 22px;
+      background: rgba(8,5,14,.68); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    #rsvp-modal.on { display: flex; }
+    .rsvp-card {
+      width: 100%; max-width: 340px; position: relative;
+      background: linear-gradient(160deg,#241826,#160e1c); border: 1px solid rgba(217,184,142,.28);
+      border-radius: 18px; padding: 26px 22px 22px; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      animation: rsvpIn .3s cubic-bezier(.2,.9,.3,1);
+    }
+    @keyframes rsvpIn { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+    .rsvp-x { position: absolute; top: 10px; right: 12px; width: 32px; height: 32px; border: none; background: none;
+      color: #b9a88f; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+    .rsvp-title { font-size: 1.05rem; color: #f5eee6; text-align: center; margin-bottom: 4px; }
+    .rsvp-sub { font-size: .72rem; color: #b9a88f; text-align: center; margin-bottom: 18px; line-height: 1.6; }
+    .rsvp-seg { display: flex; gap: 8px; margin-bottom: 10px; }
+    .seg-btn { flex: 1; padding: 10px; border-radius: 10px; font-family: inherit; font-size: .82rem; cursor: pointer;
+      background: rgba(255,255,255,.06); color: #cbb9a3; border: 1px solid rgba(255,255,255,.12); transition: all .2s; }
+    .seg-btn.on { background: rgba(212,165,116,.92); color: #1c0f12; border-color: transparent; font-weight: 600; }
+    .rsvp-in {
+      width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 12px 14px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px;
+      color: #f5eee6; font-family: inherit; font-size: .9rem; outline: none; transition: border-color .2s;
+    }
+    .rsvp-in::placeholder { color: #8a7c6c; }
+    .rsvp-in:focus { border-color: rgba(217,184,142,.6); }
+    #rsvp-form .btn { width: 100%; margin-top: 6px; padding: 13px; font-size: .88rem; }
+    .rsvp-msg { text-align: center; font-size: .78rem; margin: 12px 0 2px; min-height: 1em; }
+    .rsvp-msg.ok { color: #9fd39a; }
+    .rsvp-msg.err { color: #e8a0a0; }
+
     .acct { margin-top: 6px; }
     .acct-label { font-size: .66rem; color: #b9a88f; margin: 12px 0 6px; }
     .acct-row {
@@ -303,7 +338,7 @@
       .acct-label { margin-top: 10px; }
     }
   </style>
-  <script type="module" crossorigin src="/assets/index-BAtNoGSi.js"></script>
+  <script type="module" crossorigin src="/assets/index-BrUaN93V.js"></script>
 </head>
 <body>
   <div id="stage">
@@ -450,6 +485,14 @@
           </div>
         </div>
 
+        <!-- 4.5) 참석 의사 (RSVP) -->
+        <div class="glass">
+          <p class="sect-label">R S V P</p>
+          <p class="sect-title">참석 의사 전하기</p>
+          <p class="rsvp-desc">참석해 주시는 한 분 한 분 정성껏<br>모시고자 미리 여쭙습니다.</p>
+          <button class="btn btn-gold" type="button" id="rsvp-open">참석 인원 입력하기</button>
+        </div>
+
         <!-- 5) 푸터 -->
         <footer class="ed-footer">
           박창근 <span class="heart" style="color:#f3a9bb">♥</span> 정보람<br>
@@ -468,6 +511,25 @@
   </div>
 
   <div id="scroll-spacer"></div>
+
+  <!-- 참석 입력 모달 -->
+  <div id="rsvp-modal">
+    <div class="rsvp-card">
+      <button class="rsvp-x" id="rsvp-close" type="button" aria-label="닫기">×</button>
+      <p class="rsvp-title">참석 정보 전하기</p>
+      <p class="rsvp-sub">참석해 주시는 마음, 감사히 준비하겠습니다.</p>
+      <form id="rsvp-form">
+        <div class="rsvp-seg" id="rsvp-side">
+          <button type="button" class="seg-btn on" data-side="신랑측">신랑측</button>
+          <button type="button" class="seg-btn" data-side="신부측">신부측</button>
+        </div>
+        <input class="rsvp-in" id="rsvp-name" type="text" placeholder="성함" maxlength="20" autocomplete="name" required>
+        <input class="rsvp-in" id="rsvp-count" type="number" min="1" max="30" inputmode="numeric" placeholder="참석 인원 (본인 포함)" required>
+        <button class="btn btn-gold" type="submit" id="rsvp-submit">제출하기</button>
+      </form>
+      <p class="rsvp-msg" id="rsvp-msg"></p>
+    </div>
+  </div>
 
   <!-- 갤러리 3D 사진책 (본-스키닝) -->
   <div id="book-overlay">
