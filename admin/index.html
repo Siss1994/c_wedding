@@ -124,7 +124,7 @@
           <button class="chip" data-f="신랑측">신랑측</button>
           <button class="chip" data-f="신부측">신부측</button>
         </div>
-        <div class="scroll"><table id="rsvp-tbl"><thead><tr><th>구분</th><th>성함</th><th class="num">인원</th><th>신청 시간</th><th class="act"></th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll"><table id="rsvp-tbl"><thead><tr><th class="num">#</th><th>구분</th><th>성함</th><th class="num">인원</th><th>신청 시간</th><th class="act"></th></tr></thead><tbody></tbody></table></div>
       </div>
 
       <div class="sec">
@@ -172,7 +172,7 @@
 <script>
 const FN = 'https://cmurtsryrjkwuqwnukdv.supabase.co/functions/v1/admin'
 const $ = s => document.querySelector(s)
-let ALL_RSVP = [], ALL_VISITS = [], LABELS = {}, FILTER = 'all', PW = '', pendingDelId = null, pendingVid = null
+let ALL_RSVP = [], ALL_VISITS = [], LABELS = {}, RSVP_IDX = {}, VID2RSVP = {}, FILTER = 'all', PW = '', pendingDelId = null, pendingVid = null
 const fmt = t => { const d = new Date(t); const p = n => String(n).padStart(2,'0');
   return `${d.getFullYear()-2000}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}` }
 const dayKey = t => { const d = new Date(t); const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}` }
@@ -203,16 +203,21 @@ function renderRsvp() {
   $('#rsvp-sum').textContent = `신랑측 ${agg['신랑측'] || 0}명 · 신부측 ${agg['신부측'] || 0}명`
   const list = FILTER === 'all' ? rsvp : rsvp.filter(r => r.side === FILTER)
   $('#rsvp-tbl tbody').innerHTML = list.length ? list.map(r => `<tr>
+    <td class="num">${RSVP_IDX[r.id] || ''}</td>
     <td><span class="tag ${r.side === '신부측' ? 'b' : 'g'}">${esc(r.side)}</span></td>
     <td>${esc(r.name)}</td><td class="num">${r.count || 0}</td><td>${fmt(r.created_at)}</td>
     <td class="act"><button class="del-btn" data-id="${r.id}" data-name="${esc(r.name)}" title="삭제">×</button></td></tr>`).join('')
-    : `<tr><td colspan="5" class="muted">${FILTER === 'all' ? '아직 응답이 없습니다.' : '해당 구분의 응답이 없습니다.'}</td></tr>`
+    : `<tr><td colspan="6" class="muted">${FILTER === 'all' ? '아직 응답이 없습니다.' : '해당 구분의 응답이 없습니다.'}</td></tr>`
 }
 
 function render({ rsvp, visits, labels }) {
   rsvp = rsvp || []; visits = visits || []
   ALL_RSVP = rsvp; ALL_VISITS = visits
   if (labels) LABELS = labels
+  // RSVP 인덱싱(#, 먼저 응답한 사람=1) + visitor_id → RSVP 매핑
+  RSVP_IDX = {}; VID2RSVP = {}
+  ;[...rsvp].sort((a,b)=> new Date(a.created_at) - new Date(b.created_at)).forEach((r,i)=>{ RSVP_IDX[r.id] = i+1 })
+  rsvp.forEach(r=>{ if (r.visitor_id) VID2RSVP[r.visitor_id] = { name: r.name, side: r.side, idx: RSVP_IDX[r.id] } })
   // RSVP 요약
   const sideAgg = { '신랑측':{teams:0,people:0}, '신부측':{teams:0,people:0} }
   rsvp.forEach(r => { const s = sideAgg[r.side] || (sideAgg[r.side]={teams:0,people:0}); s.teams++; s.people += (r.count||0) })
@@ -252,11 +257,13 @@ function render({ rsvp, visits, labels }) {
   $('#visit-sum').textContent = `총 ${pv}건`
   $('#visit-tbl tbody').innerHTML = visits.slice(0,200).map(v=>{
     const vid = v.visitor_id || ''
-    const named = !!LABELS[vid]
-    const disp = named ? LABELS[vid] : (vid.slice(0,8) || '-')
+    const manual = LABELS[vid]
+    const rr = VID2RSVP[vid]                       // 참석응답 매핑
+    const disp = manual || (rr ? rr.name : (vid.slice(0,8) || '-'))
+    const badge = rr ? ` <span class="tag ${rr.side==='신부측'?'b':'g'}">참석#${rr.idx}</span>` : ''
     return `<tr>
     <td>${fmt(v.created_at)}</td><td>${esc(v.ip||'-')}</td><td>${device(v.ua)}</td>
-    <td><button class="lbl-btn${named?' named':''}" data-vid="${esc(vid)}" title="이름 지정/변경">${esc(disp)}</button></td></tr>`
+    <td><button class="lbl-btn${manual||rr?' named':''}" data-vid="${esc(vid)}" title="이름 지정/변경">${esc(disp)}</button>${badge}</td></tr>`
   }).join('') || `<tr><td colspan="4" class="muted">방문 없음</td></tr>`
 
   document.documentElement.classList.remove('autologin')
