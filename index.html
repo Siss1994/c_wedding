@@ -174,12 +174,12 @@
     /* RSVP 참석 입력 */
     .rsvp-desc { font-size: .74rem; color: #c9b7a2; line-height: 1.8; margin: 6px 0 14px; }
     #rsvp-open { width: 100%; }
-    #rsvp-modal {
+    .rsvp-modal {
       position: fixed; inset: 0; z-index: 70; display: none;
       align-items: center; justify-content: center; padding: 22px;
       background: rgba(8,5,14,.68); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     }
-    #rsvp-modal.on { display: flex; }
+    .rsvp-modal.on { display: flex; }
     .rsvp-card {
       width: 100%; max-width: 340px; position: relative;
       background: linear-gradient(160deg,#241826,#160e1c); border: 1px solid rgba(217,184,142,.28);
@@ -206,6 +206,24 @@
     .rsvp-msg { text-align: center; font-size: .78rem; margin: 12px 0 2px; min-height: 1em; }
     .rsvp-msg.ok { color: #9fd39a; }
     .rsvp-msg.err { color: #e8a0a0; }
+    /* 인원 스텝퍼 */
+    .rsvp-stepper { display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; padding: 6px 6px 6px 16px; background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.14); border-radius: 10px; }
+    .step-label { font-size: .86rem; color: #cbb9a3; }
+    .stepper { display: flex; align-items: center; gap: 4px; }
+    .step-btn { width: 38px; height: 38px; border-radius: 9px; border: none; cursor: pointer;
+      background: rgba(212,165,116,.92); color: #1c0f12; font-size: 1.35rem; line-height: 1;
+      font-family: inherit; display: flex; align-items: center; justify-content: center;
+      transition: transform .12s ease, filter .2s ease; -webkit-tap-highlight-color: transparent; }
+    .step-btn:active { transform: scale(.88); filter: brightness(.9); }
+    .step-btn:disabled { background: rgba(255,255,255,.1); color: #7a6e60; cursor: default; }
+    .step-val { min-width: 48px; text-align: center; font-size: 1.05rem; color: #f5eee6; font-weight: 600; }
+    /* 확인 모달 */
+    .rsvp-done-emoji { font-size: 2.4rem; text-align: center; margin: 2px 0 12px; }
+    .rsvp-done-msg { text-align: center; color: #f0e7db; font-size: .94rem; line-height: 1.95;
+      white-space: pre-line; margin-bottom: 20px; }
+    #rsvp-done .btn { width: 100%; padding: 13px; }
 
     .acct { margin-top: 6px; }
     .acct-label { font-size: .66rem; color: #b9a88f; margin: 12px 0 6px; }
@@ -339,7 +357,7 @@
       .acct-label { margin-top: 10px; }
     }
   </style>
-  <script type="module" crossorigin src="/assets/index-BrUaN93V.js"></script>
+  <script type="module" crossorigin src="/assets/index-B5XQDzi4.js"></script>
 </head>
 <body>
   <div id="stage">
@@ -514,7 +532,7 @@
   <div id="scroll-spacer"></div>
 
   <!-- 참석 입력 모달 -->
-  <div id="rsvp-modal">
+  <div id="rsvp-modal" class="rsvp-modal">
     <div class="rsvp-card">
       <button class="rsvp-x" id="rsvp-close" type="button" aria-label="닫기">×</button>
       <p class="rsvp-title">참석 정보 전하기</p>
@@ -525,10 +543,26 @@
           <button type="button" class="seg-btn" data-side="신부측">신부측</button>
         </div>
         <input class="rsvp-in" id="rsvp-name" type="text" placeholder="성함" maxlength="20" autocomplete="name" required>
-        <input class="rsvp-in" id="rsvp-count" type="number" min="1" max="30" inputmode="numeric" placeholder="참석 인원 (본인 포함)" required>
-        <button class="btn btn-gold" type="submit" id="rsvp-submit">제출하기</button>
+        <div class="rsvp-stepper">
+          <span class="step-label">참석 인원</span>
+          <div class="stepper">
+            <button type="button" class="step-btn" id="rsvp-minus" aria-label="인원 줄이기">−</button>
+            <span class="step-val" id="rsvp-count-val">1</span>
+            <button type="button" class="step-btn" id="rsvp-plus" aria-label="인원 늘리기">+</button>
+          </div>
+        </div>
+        <button class="btn btn-gold" type="submit" id="rsvp-submit">참여의사 전달하기</button>
       </form>
       <p class="rsvp-msg" id="rsvp-msg"></p>
+    </div>
+  </div>
+
+  <!-- 참석 완료 확인 모달 -->
+  <div id="rsvp-done" class="rsvp-modal">
+    <div class="rsvp-card">
+      <p class="rsvp-done-emoji">💌</p>
+      <p class="rsvp-done-msg" id="rsvp-done-msg"></p>
+      <button class="btn btn-gold" type="button" id="rsvp-done-ok">확인</button>
     </div>
   </div>
 
