@@ -53,6 +53,22 @@
   .bar-row .fill { height: 100%; background: linear-gradient(90deg,#8f6fd0,#c79ad8); border-radius: 6px; }
   .bar-row .n { width: 46px; text-align: right; color: #d9cdea; }
   .muted { color: #8d80a3; font-size: .8rem; padding: 14px 4px; }
+  .filters { display: flex; gap: 6px; margin-bottom: 10px; }
+  .chip { padding: 6px 13px; border-radius: 20px; font-size: .76rem; cursor: pointer; font-family: inherit;
+    border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.05); color: #b3a6c7; transition: all .15s; }
+  .chip.on { background: #9b7bd4; color: #150e22; border-color: transparent; font-weight: 600; }
+  th.act, td.act { text-align: center; width: 42px; }
+  .del-btn { border: none; background: rgba(230,120,120,.16); color: #ec8a8a; width: 27px; height: 27px;
+    border-radius: 7px; cursor: pointer; font-size: 1rem; line-height: 1; transition: transform .1s, filter .2s; }
+  .del-btn:active { transform: scale(.88); } .del-btn:hover { filter: brightness(1.15); }
+  #confirm { position: fixed; inset: 0; z-index: 90; display: none; align-items: center; justify-content: center;
+    background: rgba(8,5,14,.72); padding: 22px; }
+  #confirm.on { display: flex; }
+  .confirm-card { background: linear-gradient(160deg,#20182b,#140f1e); border: 1px solid rgba(180,150,220,.25);
+    border-radius: 16px; padding: 26px 22px 22px; max-width: 300px; width: 100%; text-align: center; }
+  .confirm-card p { font-size: .92rem; margin-bottom: 20px; line-height: 1.7; }
+  .confirm-card .row { display: flex; gap: 8px; }
+  .confirm-card .btn { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -81,7 +97,12 @@
 
       <div class="sec">
         <h2>참석 응답 <span id="rsvp-sum"></span></h2>
-        <div class="scroll"><table id="rsvp-tbl"><thead><tr><th>구분</th><th>성함</th><th class="num">인원</th><th>신청 시간</th></tr></thead><tbody></tbody></table></div>
+        <div class="filters" id="rsvp-filters">
+          <button class="chip on" data-f="all">전체</button>
+          <button class="chip" data-f="신랑측">신랑측</button>
+          <button class="chip" data-f="신부측">신부측</button>
+        </div>
+        <div class="scroll"><table id="rsvp-tbl"><thead><tr><th>구분</th><th>성함</th><th class="num">인원</th><th>신청 시간</th><th class="act"></th></tr></thead><tbody></tbody></table></div>
       </div>
 
       <div class="sec">
@@ -101,9 +122,21 @@
     </div>
   </div>
 
+  <!-- 삭제 확인 -->
+  <div id="confirm">
+    <div class="confirm-card">
+      <p id="confirm-msg">삭제하겠습니까?</p>
+      <div class="row">
+        <button class="btn ghost" id="confirm-no" type="button">아니오</button>
+        <button class="btn" id="confirm-yes" type="button">예</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 const FN = 'https://cmurtsryrjkwuqwnukdv.supabase.co/functions/v1/admin'
 const $ = s => document.querySelector(s)
+let ALL_RSVP = [], ALL_VISITS = [], FILTER = 'all', PW = '', pendingDelId = null
 const fmt = t => { const d = new Date(t); const p = n => String(n).padStart(2,'0');
   return `${d.getFullYear()-2000}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}` }
 const dayKey = t => { const d = new Date(t); const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}` }
@@ -127,8 +160,22 @@ async function login(pw) {
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) }
 
+function renderRsvp() {
+  const rsvp = ALL_RSVP
+  const agg = { '신랑측': 0, '신부측': 0 }
+  rsvp.forEach(r => { agg[r.side] = (agg[r.side] || 0) + (r.count || 0) })
+  $('#rsvp-sum').textContent = `신랑측 ${agg['신랑측'] || 0}명 · 신부측 ${agg['신부측'] || 0}명`
+  const list = FILTER === 'all' ? rsvp : rsvp.filter(r => r.side === FILTER)
+  $('#rsvp-tbl tbody').innerHTML = list.length ? list.map(r => `<tr>
+    <td><span class="tag ${r.side === '신부측' ? 'b' : 'g'}">${esc(r.side)}</span></td>
+    <td>${esc(r.name)}</td><td class="num">${r.count || 0}</td><td>${fmt(r.created_at)}</td>
+    <td class="act"><button class="del-btn" data-id="${r.id}" data-name="${esc(r.name)}" title="삭제">×</button></td></tr>`).join('')
+    : `<tr><td colspan="5" class="muted">${FILTER === 'all' ? '아직 응답이 없습니다.' : '해당 구분의 응답이 없습니다.'}</td></tr>`
+}
+
 function render({ rsvp, visits }) {
   rsvp = rsvp || []; visits = visits || []
+  ALL_RSVP = rsvp; ALL_VISITS = visits
   // RSVP 요약
   const sideAgg = { '신랑측':{teams:0,people:0}, '신부측':{teams:0,people:0} }
   rsvp.forEach(r => { const s = sideAgg[r.side] || (sideAgg[r.side]={teams:0,people:0}); s.teams++; s.people += (r.count||0) })
@@ -148,12 +195,8 @@ function render({ rsvp, visits }) {
     ['모바일 비율', `${pv?Math.round(mobile/pv*100):0}<small>%</small>`],
   ].map(([k,v])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')
 
-  // RSVP 요약 + 목록
-  $('#rsvp-sum').textContent = `신랑측 ${sideAgg['신랑측'].people}명 · 신부측 ${sideAgg['신부측'].people}명`
-  $('#rsvp-tbl tbody').innerHTML = rsvp.length ? rsvp.map(r=>`<tr>
-    <td><span class="tag ${r.side==='신부측'?'b':'g'}">${esc(r.side)}</span></td>
-    <td>${esc(r.name)}</td><td class="num">${r.count||0}</td><td>${fmt(r.created_at)}</td></tr>`).join('')
-    : `<tr><td colspan="4" class="muted">아직 응답이 없습니다.</td></tr>`
+  // RSVP 요약 + 목록 (필터·삭제 지원)
+  renderRsvp()
 
   // 기기 분포
   const devAgg = {}; visits.forEach(v=>{ const d=device(v.ua); devAgg[d]=(devAgg[d]||0)+1 })
@@ -179,7 +222,7 @@ function render({ rsvp, visits }) {
 
 async function tryLoad(pw, fromForm) {
   const r = await login(pw)
-  if (r.ok) { sessionStorage.setItem('wc_admin_pw', pw); render(r.data); return true }
+  if (r.ok) { PW = pw; sessionStorage.setItem('wc_admin_pw', pw); render(r.data); return true }
   if (fromForm) $('#login-msg').textContent = r.data.message || '로그인 실패'
   else sessionStorage.removeItem('wc_admin_pw')
   return false
@@ -194,6 +237,38 @@ $('#login-form').addEventListener('submit', async e => {
 })
 $('#logout').addEventListener('click', () => { sessionStorage.removeItem('wc_admin_pw'); location.reload() })
 $('#refresh').addEventListener('click', () => { const pw = sessionStorage.getItem('wc_admin_pw'); if (pw) tryLoad(pw, false) })
+
+// 신랑측/신부측 필터
+$('#rsvp-filters').addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if (!chip) return
+  FILTER = chip.dataset.f
+  document.querySelectorAll('#rsvp-filters .chip').forEach(c => c.classList.toggle('on', c === chip))
+  renderRsvp()
+})
+
+// 삭제 (X → 확인 모달 → 예)
+$('#rsvp-tbl').addEventListener('click', e => {
+  const btn = e.target.closest('.del-btn'); if (!btn) return
+  pendingDelId = btn.dataset.id
+  $('#confirm-msg').textContent = `'${btn.dataset.name}'님 참석 응답을 삭제하겠습니까?`
+  $('#confirm').classList.add('on')
+})
+$('#confirm-no').addEventListener('click', () => { $('#confirm').classList.remove('on'); pendingDelId = null })
+$('#confirm-yes').addEventListener('click', async () => {
+  const id = pendingDelId; if (id == null) return
+  const yes = $('#confirm-yes'); yes.disabled = true; yes.textContent = '삭제 중…'
+  try {
+    const res = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', password: PW, id: Number(id) }) })
+    const d = await res.json().catch(() => ({}))
+    if (res.ok && d.ok) {
+      ALL_RSVP = ALL_RSVP.filter(r => String(r.id) !== String(id))
+      render({ rsvp: ALL_RSVP, visits: ALL_VISITS })   // 카드·요약·목록 갱신
+    } else { alert(d.message || '삭제 실패') }
+  } catch { alert('삭제 실패 — 네트워크 오류') }
+  yes.disabled = false; yes.textContent = '예'
+  $('#confirm').classList.remove('on'); pendingDelId = null
+})
 
 // 세션 자동 로그인
 const saved = sessionStorage.getItem('wc_admin_pw')
