@@ -141,6 +141,11 @@
         <h2>최근 방문 <span id="visit-sum"></span></h2>
         <div class="scroll"><table id="visit-tbl"><thead><tr><th>시간</th><th>IP</th><th>기기</th><th>유저</th></tr></thead><tbody></tbody></table></div>
       </div>
+
+      <div class="sec">
+        <h2>참석자 ↔ 방문 매핑 <span>(참석응답별 방문 이력)</span></h2>
+        <div class="scroll"><table id="map-tbl"><thead><tr><th class="num">#</th><th>구분</th><th>성함</th><th class="num">방문</th><th>최근 방문</th><th>IP</th><th>기기</th></tr></thead><tbody></tbody></table></div>
+      </div>
     </div>
   </div>
 
@@ -265,6 +270,23 @@ function render({ rsvp, visits, labels }) {
     <td>${fmt(v.created_at)}</td><td>${esc(v.ip||'-')}</td><td>${device(v.ua)}</td>
     <td><button class="lbl-btn${manual||rr?' named':''}" data-vid="${esc(vid)}" title="이름 지정/변경">${esc(disp)}</button>${badge}</td></tr>`
   }).join('') || `<tr><td colspan="4" class="muted">방문 없음</td></tr>`
+
+  // 참석자 ↔ 방문 매핑 (참석응답별 방문 이력)
+  const visByVid = {}
+  visits.forEach(v => { const k = v.visitor_id || ''; if (k) (visByVid[k] = visByVid[k] || []).push(v) })
+  const mapList = [...rsvp].sort((a,b) => (RSVP_IDX[a.id]||0) - (RSVP_IDX[b.id]||0))
+  $('#map-tbl tbody').innerHTML = mapList.length ? mapList.map(r => {
+    const vs = r.visitor_id ? (visByVid[r.visitor_id] || []) : []
+    const last = vs.length ? vs.slice().sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))[0] : null
+    return `<tr>
+      <td class="num">${RSVP_IDX[r.id] || ''}</td>
+      <td><span class="tag ${r.side==='신부측'?'b':'g'}">${esc(r.side)}</span></td>
+      <td>${esc(r.name)}</td>
+      <td class="num">${vs.length}</td>
+      <td>${last ? fmt(last.created_at) : '<span style="color:#8d80a3">매핑없음</span>'}</td>
+      <td>${last ? esc(last.ip||'-') : '-'}</td>
+      <td>${last ? device(last.ua) : '-'}</td></tr>`
+  }).join('') : `<tr><td colspan="7" class="muted">응답 없음</td></tr>`
 
   document.documentElement.classList.remove('autologin')
   const bt = $('#boot'); if (bt) bt.style.display = 'none'
